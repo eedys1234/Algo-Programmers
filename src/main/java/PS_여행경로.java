@@ -30,60 +30,64 @@ public class PS_여행경로 {
         }
     }
 
+    public static StringBuilder sb = new StringBuilder();
+
     public static String[] solution(String[][] tickets) {
-        String[] answer = new String[tickets.length + 1];
+        String[] answer = new String[tickets.length+1];
 
-        Set<String> set = Stream.of(tickets)
-                                .flatMap(ticket -> Stream.of(ticket))
-                                .collect(Collectors.toSet());
+        Map<String, List<Travel>> hanger = Stream.of(tickets)
+                .flatMap(strings -> Stream.of(strings))
+                .collect(Collectors.toSet())
+                .stream()
+                .collect(Collectors.toMap(Function.identity(), key -> new ArrayList<Travel>()));
 
-        Map<String, List<Travel>> hanger = set.stream()
-                                        .collect(Collectors.toMap(Function.identity(), key -> new ArrayList<Travel>()));
+        Map<Travel, Boolean> visited = new HashMap<>();
 
-        for(String[] ticket : tickets) {
-            String start = ticket[0];
-            String end = ticket[1];
-
-            List<Travel> list = null;
-
-            if(!hanger.containsKey(start)) {
-                list = new ArrayList<>();
-            }
-            else {
-                list = hanger.get(start);
-            }
+        for(int i=0;i<tickets.length;i++)
+        {
+            String start = tickets[i][0];
+            String end = tickets[i][1];
 
             Travel travel = new Travel(end);
-            list.add(travel);
-            hanger.put(start, list);
+            hanger.get(start).add(travel);
             visited.put(travel, false);
         }
 
-        for(Map.Entry<String, List<Travel>> entry : hanger.entrySet())
+        for(Map.Entry<String, List<Travel>> travel_list : hanger.entrySet())
         {
-            Collections.sort(entry.getValue());
+            Collections.sort(travel_list.getValue());
         }
 
         answer[0] = "ICN";
-        dfs(hanger, answer[0], answer);
-
+        dfs(hanger, visited, answer, "ICN", 1);
+        answer = sb.toString().split(",");
         return answer;
     }
 
-    public static void dfs(Map<String, List<Travel>> hanger, String start, String[] answer) {
-//                A -> B, C
-//                B -> D
-//                C -> A
-        List<Travel> adj = hanger.get(start);
+    public static boolean dfs(Map<String, List<Travel>> hanger, Map<Travel, Boolean> visited, String[] answer, String start, int k) {
 
-        for(Travel end : adj)
+        if(k == answer.length) {
+            for(int i=0;i<answer.length;i++) {
+                sb.append(answer[i]).append(",");
+            }
+            return true;
+        }
+
+        List<Travel> list = hanger.get(start);
+
+        for(Travel travel : list)
         {
-            if(!visited.get(end)) {
-                visited.put(end, true);
-                answer[k++] = end.getName();
-                dfs(hanger, end.getName(), answer);
+            if(!visited.get(travel)) {
+                visited.put(travel, true);
+                answer[k] = travel.name;
+                if(dfs(hanger, visited, answer, travel.name, k+1)) {
+                    return true;
+                }
+                visited.put(travel, false);
             }
         }
+
+        return false;
     }
 
     public static class Travel implements Comparable<Travel> {
@@ -94,13 +98,9 @@ public class PS_여행경로 {
             this.name = name;
         }
 
-        public String getName() {
-            return name;
-        }
-
         @Override
         public int compareTo(Travel o) {
-            return this.name.compareTo(o.getName());
+            return this.name.compareTo(o.name);
         }
     }
 
