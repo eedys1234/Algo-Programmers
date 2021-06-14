@@ -20,7 +20,7 @@ public class PS_징검다리 {
         int answer = 0;
         int len = rocks.length;
 
-        int[] diff = new int[len + 1];
+        int[] diff = new int[len];
         Arrays.sort(rocks);
 
         diff[0] = rocks[0];
@@ -30,32 +30,39 @@ public class PS_징검다리 {
             diff[i] = rocks[i] - rocks[i-1];
         }
 
-        diff[len] = distance - rocks[len-1];
 
         int left = 1;
         int right = distance;
 
-        while(left < right) {
+        while(left <= right) {
 
             int mid = (left + right)/2;
             int count = 0;
+            int prev = 0;
 
-            for(int i=0;i<diff.length;i++)
+            for(int i=0;i<len;i++)
             {
-                if(mid <= diff[i]) {
+                if(mid > rocks[i] - prev) {
                     count++;
+                }
+                else {
+                    prev = rocks[i];
                 }
             }
 
-            if(count < (len - n + 1)) {
-                right = mid;
+            if(distance - prev < mid) {
+                count++;
+            }
+
+            if(count <= n) {
+                left = mid+1;
             }
             else {
-                left = mid+1;
+                right = mid-1;
             }
         }
 
-        answer = left-1;
+        answer = left;
 
         return answer;
     }
